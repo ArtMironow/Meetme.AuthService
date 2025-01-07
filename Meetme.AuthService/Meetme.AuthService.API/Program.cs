@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
+using Meetme.AuthService.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,24 +6,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
-{
-	options.AddDefaultPolicy(builder =>
-		builder.AllowAnyOrigin()
-			.AllowAnyMethod()
-			.AllowAnyHeader());
-});
+builder.Services.AddHttpClient();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-	.AddJwtBearer(options =>
-	{
-		options.Authority = $"https://{builder.Configuration["Auth0:Domain"]}/";
-		options.Audience = builder.Configuration["Auth0:Audience"];
-		options.TokenValidationParameters = new TokenValidationParameters
-		{
-			NameClaimType = ClaimTypes.NameIdentifier
-		};
-	});
+builder.Services.ConfigureCors();
+
+builder.Services.ConfigureAuth(builder.Configuration);
 
 builder.Services.AddAuthorization();
 
