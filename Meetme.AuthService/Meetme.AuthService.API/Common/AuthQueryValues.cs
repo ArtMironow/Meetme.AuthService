@@ -6,5 +6,5 @@ public class AuthQueryValues
 	public const string Scope = "openid profile email offline_access";
 	public const string AuthorizationCodeGrantType = "authorization_code";
 	public const string RefreshTokenGrantType = "refresh_token";
-	public const string LogoutRedirectUri = "https://localhost:7212";
+	public const string LogoutRedirectUri = "https://localhost:7126";
 }
