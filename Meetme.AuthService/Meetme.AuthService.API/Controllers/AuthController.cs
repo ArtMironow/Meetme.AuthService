@@ -21,11 +21,11 @@ public class AuthController : ControllerBase
 	}
 
 	[HttpGet(EndpointRoutes.Login)]
-	public AuthUrlResponse Login()
+	public LoginResponse Login()
 	{
-		return new AuthUrlResponse
+		return new LoginResponse
 		{
-			AuthUrl = _authService.GetAuthUrl(_authKeys.Audience, _authKeys.ClientId, _authKeys.RedirectUri)
+			LoginUrl = _authService.GetAuthUrl(_authKeys.Audience, _authKeys.ClientId, _authKeys.RedirectUri)
 		};
 	}
 
@@ -43,9 +43,9 @@ public class AuthController : ControllerBase
 
 	[HttpGet(EndpointRoutes.Logout)]
 	[Authorize]
-	public LogoutUrlResponse Logout()
+	public LogoutResponse Logout()
 	{
-		return new LogoutUrlResponse
+		return new LogoutResponse
 		{
 			LogoutUrl = _authService.GetLogoutUrl(_authKeys.ClientId)
 		};

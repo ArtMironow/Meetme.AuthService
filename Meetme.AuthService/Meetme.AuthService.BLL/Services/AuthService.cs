@@ -45,7 +45,7 @@ public class AuthService : IAuthService
 
 		if (!response.IsSuccessStatusCode)
 		{
-			throw new BusinessLogicException("Failed to refresh token.");
+			throw new TokenRetrievalException("Failed to refresh token.");
 		}
 
 		return await response.Content.ReadAsStringAsync();
@@ -62,7 +62,7 @@ public class AuthService : IAuthService
 
 		if (tokens == null)
 		{
-			throw new BusinessLogicException("Failed to exchange authorization code for tokens.");
+			throw new TokenRetrievalException("Failed to exchange authorization code for tokens.");
 		}
 
 		return tokens;
