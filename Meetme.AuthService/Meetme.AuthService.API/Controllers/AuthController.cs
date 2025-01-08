@@ -1,117 +1,53 @@
 ﻿using Meetme.AuthService.API.Common;
+using Meetme.AuthService.API.Models;
+using Meetme.AuthService.BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Meetme.AuthService.API.Controllers;
 
 [ApiController]
-[Route("auth")]
+[Route("[controller]")]
 public class AuthController : ControllerBase
 {
-	private readonly IHttpClientFactory _httpClientFactory;
 	private readonly AuthKeys _authKeys;
+	private readonly IAuthService _authService;
 
-	public AuthController(IHttpClientFactory httpClientFactory, IOptions<AuthKeys> authKeysAccessor)
+	public AuthController(IOptions<AuthKeys> authKeysAccessor, IAuthService authService)
 	{
-		_httpClientFactory = httpClientFactory;
 		_authKeys = authKeysAccessor.Value;
+		_authService = authService;
 	}
 
-	[HttpGet("login")]
-	public string? Login()
+	[HttpGet(EndpointRoutes.Login)]
+	public AuthUrlResponse Login()
 	{
-		var authUrl = QueryHelpers.AddQueryString(AuthEndpoints.Authorize, new Dictionary<string, string>
+		return new AuthUrlResponse
 		{
-			{ AuthQueryKeys.Audience, _authKeys.Audience },
-			{ AuthQueryKeys.Scope, AuthQueryValues.Scope },
-			{ AuthQueryKeys.ResponseType, AuthQueryValues.ResponseType },
-			{ AuthQueryKeys.ClientId, _authKeys.ClientId },
-			{ AuthQueryKeys.RedirectUri, _authKeys.RedirectUri },
-		});
-
-		return authUrl;
-	}
-
-	[HttpGet("callback")]
-	public async Task<IActionResult> Callback([FromQuery] string code)
-	{
-		if (string.IsNullOrEmpty(code))
-		{
-			return BadRequest("Authorization code is missing.");
-		}
-
-		var tokens = await ExchangeCodeForTokens(code);
-		if (tokens == null)
-		{
-			return StatusCode(500, "Failed to exchange authorization code for tokens.");
-		}
-
-		var tokensResponse = JsonConvert.SerializeObject(tokens);
-
-		return Ok(tokensResponse);
-	}
-
-	private async Task<object?> ExchangeCodeForTokens(string code)
-	{
-		var payload = new Dictionary<string, string>
-		{
-			{ AuthQueryKeys.GrantType, AuthQueryValues.AuthorizationCodeGrantType },
-			{ AuthQueryKeys.ClientId, _authKeys.ClientId },
-			{ AuthQueryKeys.ClientSecret, _authKeys.ClientSecret },
-			{ AuthQueryKeys.Code, code },
-			{ AuthQueryKeys.RedirectUri, _authKeys.RedirectUri }
+			AuthUrl = _authService.GetAuthUrl(_authKeys.Audience, _authKeys.ClientId, _authKeys.RedirectUri)
 		};
-
-		var httpClient = _httpClientFactory.CreateClient();
-		var response = await httpClient.PostAsync(AuthEndpoints.Token, new FormUrlEncodedContent(payload));
-
-		if (!response.IsSuccessStatusCode)
-		{
-			return null;
-		}
-
-		var responseContent = await response.Content.ReadAsStringAsync();
-		return JsonConvert.DeserializeObject<object>(responseContent);
 	}
 
-	[HttpPost("refresh-token")]
-	public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+	[HttpGet(EndpointRoutes.Callback)]
+	public Task<string> Callback([FromQuery] string code)
 	{
-		var payload = new Dictionary<string, string>
-		{
-			{ AuthQueryKeys.GrantType, AuthQueryValues.RefreshTokenGrantType },
-			{ AuthQueryKeys.ClientId, _authKeys.ClientId },
-			{ AuthQueryKeys.ClientSecret, _authKeys.ClientSecret },
-			{ AuthQueryKeys.RefreshToken, refreshToken }
-		};
-
-		var httpClient = _httpClientFactory.CreateClient();
-		var response = await httpClient.PostAsync(AuthEndpoints.Token, new FormUrlEncodedContent(payload));
-
-		if (!response.IsSuccessStatusCode)
-		{
-			return StatusCode(500, "Failed to refresh token.");
-		}
-
-		var responseContent = await response.Content.ReadAsStringAsync();
-
-		return Ok(responseContent);
+		return _authService.GetTokensAsync(code, _authKeys.ClientId, _authKeys.ClientSecret, _authKeys.RedirectUri);
 	}
 
+	[HttpPost(EndpointRoutes.RefreshToken)]
+	public Task<string> RefreshToken([FromBody] string refreshToken)
+	{
+		return _authService.GetRefreshTokenAsync(refreshToken, _authKeys.ClientId, _authKeys.ClientSecret);
+	}
 
+	[HttpGet(EndpointRoutes.Logout)]
 	[Authorize]
-	[HttpGet("logout")]
-	public string Logout()
+	public LogoutUrlResponse Logout()
 	{
-		var logoutUrl = QueryHelpers.AddQueryString(AuthEndpoints.Logout, new Dictionary<string, string>
+		return new LogoutUrlResponse
 		{
-			{ AuthQueryKeys.ClientId, _authKeys.ClientId },
-			{ AuthQueryKeys.ReturnTo, AuthQueryValues.LogoutRedirectUri },
-		});
-
-		return logoutUrl;
+			LogoutUrl = _authService.GetLogoutUrl(_authKeys.ClientId)
+		};
 	}
 }

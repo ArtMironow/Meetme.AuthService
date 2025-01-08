@@ -1,4 +1,4 @@
-﻿namespace Meetme.AuthService.API.Common;
+﻿namespace Meetme.AuthService.BLL.Common;
 
 public static class AuthQueryKeys
 {
