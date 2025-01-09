@@ -24,4 +24,3 @@ public static class ServiceExtensions
 		services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 	}
 }
-

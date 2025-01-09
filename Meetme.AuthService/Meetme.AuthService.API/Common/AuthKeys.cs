@@ -8,4 +8,3 @@ public class AuthKeys
 	public string? Audience { get; set; }
 	public string? ClientSecret { get; set; }
 }
-
