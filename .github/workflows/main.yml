@@ -38,4 +38,4 @@ jobs:
         with:
           args:
             -Dsonar.organization=ArtMironowProjects
-            -Dsonar.projectKey=Meetme.AuthService
+            -Dsonar.projectKey=ArtMironow_Meetme.AuthService
