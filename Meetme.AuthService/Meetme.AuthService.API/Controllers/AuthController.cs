@@ -20,6 +20,10 @@ public class AuthController : ControllerBase
 		_authService = authService;
 	}
 
+	/// <summary>
+	/// Generates a login URL
+	/// </summary>
+	/// <remarks>Returns a LoginResponse object that contains the URL link to login page.</remarks>
 	[HttpGet(EndpointRoutes.Login)]
 	public LoginResponse Login()
 	{
@@ -41,6 +45,10 @@ public class AuthController : ControllerBase
 		return _authService.GetRefreshTokenAsync(refreshToken, _authKeys.ClientId, _authKeys.ClientSecret);
 	}
 
+	/// <summary>
+	/// Generates a logout URL
+	/// </summary>
+	/// <remarks>Returns a LogoutResponse object that contains the URL to logout.</remarks>
 	[HttpGet(EndpointRoutes.Logout)]
 	[Authorize]
 	public LogoutResponse Logout()

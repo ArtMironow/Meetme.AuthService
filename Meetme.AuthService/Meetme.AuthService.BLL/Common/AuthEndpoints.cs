@@ -2,7 +2,8 @@
 
 public static class AuthEndpoints
 {
-	public const string Authorize = "https://dev-m7hh71yj06j0cmir.us.auth0.com/authorize";
-	public const string Token = "https://dev-m7hh71yj06j0cmir.us.auth0.com/oauth/token";
-	public const string Logout = "https://dev-m7hh71yj06j0cmir.us.auth0.com/v2/logout";
+	public const string BaseUrl = "https://dev-m7hh71yj06j0cmir.us.auth0.com";
+	public const string Authorize = $"{BaseUrl}/authorize";
+	public const string Token = $"{BaseUrl}/oauth/token";
+	public const string Logout = $"{BaseUrl}/v2/logout";
 }
