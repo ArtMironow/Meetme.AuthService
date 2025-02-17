@@ -1,7 +1,10 @@
 ﻿using Meetme.AuthService.BLL.Common;
 using Meetme.AuthService.BLL.Exceptions;
 using Meetme.AuthService.BLL.Interfaces;
+using Meetme.AuthService.BLL.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
+using Newtonsoft.Json;
 
 namespace Meetme.AuthService.BLL.Services;
 
@@ -51,7 +54,7 @@ public class AuthService : IAuthService
 		return await response.Content.ReadAsStringAsync();
 	}
 
-	public async Task<string> GetTokensAsync(string code, string? clientId, string? clientSecret, string? redirectUri)
+	public async Task GetTokensAsync(string code, string? clientId, string? clientSecret, string? redirectUri, HttpContext context)
 	{
 		if (string.IsNullOrEmpty(code))
 		{
@@ -65,7 +68,9 @@ public class AuthService : IAuthService
 			throw new TokenRetrievalException("Failed to exchange authorization code for tokens.");
 		}
 
-		return tokens;
+		var tokensModel = JsonConvert.DeserializeObject<TokensModel>(tokens);
+
+		SetTokensIndideCookie(tokensModel!, context);
 	}
 
 	private async Task<string?> ExchangeCodeForTokensAsync(string code, string? clientId, string? clientSecret, string? redirectUri)
@@ -101,5 +106,31 @@ public class AuthService : IAuthService
 		});
 
 		return logoutUrl;
+	}
+
+	private void SetTokensIndideCookie(TokensModel tokens, HttpContext context)
+	{
+		context.Response.Cookies.Append(CookieKeys.AccessTokenName, tokens.AccessToken,
+			new CookieOptions
+			{
+				Expires = DateTimeOffset.UtcNow.AddSeconds(tokens.ExpiresIn),
+				HttpOnly = true,
+				IsEssential = true,
+			});
+
+		context.Response.Cookies.Append(CookieKeys.IdTokenName, tokens.IdToken,
+			new CookieOptions
+			{
+				Expires = DateTimeOffset.UtcNow.AddSeconds(CookieKeys.IdTokenExpiresInSeconds),
+				HttpOnly = true,
+				IsEssential = true,
+			});
+
+		context.Response.Cookies.Append(CookieKeys.RefreshTokenName, tokens.RefreshToken,
+			new CookieOptions
+			{
+				HttpOnly = true,
+				IsEssential = true,
+			});
 	}
 }

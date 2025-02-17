@@ -10,7 +10,8 @@ public static class ServiceExtensions
 		services.AddCors(options =>
 		{
 			options.AddDefaultPolicy(builder =>
-				builder.AllowAnyOrigin()
+				builder.WithOrigins(ConfigurationKeys.FrontendUrl)
+					.AllowCredentials()
 					.AllowAnyMethod()
 					.AllowAnyHeader());
 		});

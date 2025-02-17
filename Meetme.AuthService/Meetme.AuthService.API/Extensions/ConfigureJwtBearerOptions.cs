@@ -1,4 +1,5 @@
 ﻿using Meetme.AuthService.API.Common;
+using Meetme.AuthService.BLL.Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -22,6 +23,21 @@ public class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions
 		options.TokenValidationParameters = new TokenValidationParameters
 		{
 			NameClaimType = ClaimTypes.NameIdentifier
+		};
+
+		options.Events = new JwtBearerEvents
+		{
+			OnMessageReceived = context =>
+			{
+				context.Request.Cookies.TryGetValue(CookieKeys.AccessTokenName, out var accessToken);
+
+				if(!string.IsNullOrEmpty(accessToken))
+				{
+					context.Token = accessToken;
+				}
+
+				return Task.CompletedTask;
+			}
 		};
 	}
 
