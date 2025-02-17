@@ -19,7 +19,9 @@ builder.Services.ConfigureAuth(builder.Configuration);
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddBusinessLogicLayer(builder.Configuration);
+builder.Services.AddBusinessLogicLayer();
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
 

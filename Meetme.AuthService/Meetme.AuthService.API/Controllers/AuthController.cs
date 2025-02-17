@@ -1,5 +1,6 @@
 ﻿using Meetme.AuthService.API.Common;
 using Meetme.AuthService.API.Models;
+using Meetme.AuthService.BLL.Common;
 using Meetme.AuthService.BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,7 @@ public class AuthController : ControllerBase
 	}
 
 	[HttpGet(EndpointRoutes.Callback)]
-	public Task<string> Callback([FromQuery] string code)
+	public Task Callback([FromQuery] string code)
 	{
 		return _authService.GetTokensAsync(code, _authKeys.ClientId, _authKeys.ClientSecret, _authKeys.RedirectUri);
 	}
@@ -53,9 +54,20 @@ public class AuthController : ControllerBase
 	[Authorize]
 	public LogoutResponse Logout()
 	{
+		Response.Cookies.Delete(CookieKeys.AccessTokenName);
+		Response.Cookies.Delete(CookieKeys.RefreshTokenName);
+		Response.Cookies.Delete(CookieKeys.IdTokenName);
+
 		return new LogoutResponse
 		{
 			LogoutUrl = _authService.GetLogoutUrl(_authKeys.ClientId)
 		};
+	}
+
+	[HttpGet(EndpointRoutes.AuthStatus)]
+	[Authorize]
+	public bool? GetAuthStatus()
+	{
+		return HttpContext.User.Identity?.IsAuthenticated;
 	}
 }

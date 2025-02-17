@@ -6,4 +6,5 @@ public static class EndpointRoutes
 	public const string Callback = "callback";
 	public const string RefreshToken = "refresh-token";
 	public const string Logout = "logout";
+	public const string AuthStatus = "status";
 }
