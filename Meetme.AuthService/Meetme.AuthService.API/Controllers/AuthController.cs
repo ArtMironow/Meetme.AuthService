@@ -37,7 +37,7 @@ public class AuthController : ControllerBase
 	[HttpGet(EndpointRoutes.Callback)]
 	public Task Callback([FromQuery] string code)
 	{
-		return _authService.GetTokensAsync(code, _authKeys.ClientId, _authKeys.ClientSecret, _authKeys.RedirectUri, HttpContext);
+		return _authService.GetTokensAsync(code, _authKeys.ClientId, _authKeys.ClientSecret, _authKeys.RedirectUri);
 	}
 
 	[HttpPost(EndpointRoutes.RefreshToken)]

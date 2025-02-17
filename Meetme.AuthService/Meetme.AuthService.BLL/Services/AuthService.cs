@@ -12,10 +12,12 @@ namespace Meetme.AuthService.BLL.Services;
 public class AuthService : IAuthService
 {
 	private readonly IHttpClientFactory _httpClientFactory;
+	private readonly IHttpContextAccessor _httpContextAccessor;
 
-	public AuthService(IHttpClientFactory httpClientFactory)
+	public AuthService(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
 	{
 		_httpClientFactory = httpClientFactory;
+		_httpContextAccessor = httpContextAccessor;
 	}
 
 	public string GetAuthUrl(string? audience, string? clientId, string? redirectUri)
@@ -54,7 +56,7 @@ public class AuthService : IAuthService
 		return await response.Content.ReadAsStringAsync();
 	}
 
-	public async Task GetTokensAsync(string code, string? clientId, string? clientSecret, string? redirectUri, HttpContext context)
+	public async Task GetTokensAsync(string code, string? clientId, string? clientSecret, string? redirectUri)
 	{
 		if (string.IsNullOrEmpty(code))
 		{
@@ -70,7 +72,7 @@ public class AuthService : IAuthService
 
 		var tokensModel = JsonConvert.DeserializeObject<TokensModel>(tokens);
 
-		SetTokensIndideCookie(tokensModel!, context);
+		SetTokensIndideCookie(tokensModel!);
 	}
 
 	private async Task<string?> ExchangeCodeForTokensAsync(string code, string? clientId, string? clientSecret, string? redirectUri)
@@ -108,9 +110,9 @@ public class AuthService : IAuthService
 		return logoutUrl;
 	}
 
-	private void SetTokensIndideCookie(TokensModel tokens, HttpContext context)
+	private void SetTokensIndideCookie(TokensModel tokens)
 	{
-		context.Response.Cookies.Append(CookieKeys.AccessTokenName, tokens.AccessToken,
+		_httpContextAccessor.HttpContext.Response.Cookies.Append(CookieKeys.AccessTokenName, tokens.AccessToken,
 			new CookieOptions
 			{
 				Expires = DateTimeOffset.UtcNow.AddSeconds(tokens.ExpiresIn),
@@ -118,7 +120,7 @@ public class AuthService : IAuthService
 				IsEssential = true,
 			});
 
-		context.Response.Cookies.Append(CookieKeys.IdTokenName, tokens.IdToken,
+		_httpContextAccessor.HttpContext.Response.Cookies.Append(CookieKeys.IdTokenName, tokens.IdToken,
 			new CookieOptions
 			{
 				Expires = DateTimeOffset.UtcNow.AddSeconds(CookieKeys.IdTokenExpiresInSeconds),
@@ -126,7 +128,7 @@ public class AuthService : IAuthService
 				IsEssential = true,
 			});
 
-		context.Response.Cookies.Append(CookieKeys.RefreshTokenName, tokens.RefreshToken,
+		_httpContextAccessor.HttpContext.Response.Cookies.Append(CookieKeys.RefreshTokenName, tokens.RefreshToken,
 			new CookieOptions
 			{
 				HttpOnly = true,
